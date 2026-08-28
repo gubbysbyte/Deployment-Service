@@ -7,12 +7,16 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 
+// const s3Client = new S3Client({
+//     region:'eu-north-1',
+//     credentials: {
+//         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+//     }
+// })
+
 const s3Client = new S3Client({
-    region:'eu-north-1',
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
+    region:'eu-north-1'
 })
 
 const PROJECT_ID = process.env.PROJECT_ID;

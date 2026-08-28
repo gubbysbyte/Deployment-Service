@@ -17,7 +17,9 @@ COPY package*.json .
 RUN npm install
 
 # make this executable script
-RUN chmod +x main.sh 
+RUN chmod +x main.sh
 RUN chmod +x script.js
 
 ENTRYPOINT ["/home/app/main.sh"]
+
+# requirements -> Entities -> Class Diagram -> Implementation -> Extensibility
