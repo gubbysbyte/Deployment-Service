@@ -4,8 +4,11 @@ const fs = require('fs');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const mime = require('mime-types')
 const dotenv = require('dotenv');
+const Redis = require('ioredis');
+
 dotenv.config();
 
+// const publisher = new Redis(process.env.REDIS_URL);
 
 // const s3Client = new S3Client({
 //     region:'eu-north-1',
@@ -20,6 +23,10 @@ const s3Client = new S3Client({
 })
 
 const PROJECT_ID = process.env.PROJECT_ID;
+
+// function publishLog(log){
+//     publisher.publish(`logs:${PROJECT_ID}`, JSON.stringify({log}));
+// }
 
 async function init(){
     console.log('Executing script.js');

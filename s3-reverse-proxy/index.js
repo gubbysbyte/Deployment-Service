@@ -20,7 +20,7 @@ hostname
 
 */
 
-const BASE_PATH = "https://deployment-service-outputs.s3.eu-north-1.amazonaws.com/__ouputs/";
+const BASE_PATH = "https://deployment-service-outputs.s3.eu-north-1.amazonaws.com/__outputs";
 const proxy = httpProxy.createProxy();
 
 app.use((req, res) => {
