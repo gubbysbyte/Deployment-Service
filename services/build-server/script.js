@@ -45,7 +45,14 @@ async function init(){
         publishLog("Error " + data.toString());
     })
 
-    p.on('close', async function(){
+    p.on('close', async function(code){
+        if (code !== 0) {
+            console.log(`Build failed with exit code ${code}`);
+            publishLog(`Build failed with exit code ${code}`);
+            await publisher.quit();
+            process.exit(1);
+        }
+
         console.log('Build Complete');
         publishLog('Build Complete');
 
@@ -59,8 +66,8 @@ async function init(){
 
             if(fs.lstatSync(filePath).isDirectory()) continue;
 
-            console.log(`Uploading ${filePath} to S3`);
-            publishLog(`Uploading ${filePath} to S3`);
+            console.log(`Uploading ${file} to S3`);
+            publishLog(`Uploading ${file} to S3`);
 
             const command = new PutObjectCommand({
                 Bucket: 'deployment-service-outputs',
@@ -70,12 +77,15 @@ async function init(){
             })
             await s3Client.send(command);
 
-            publishLog(`Finished uploading ${filePath}`);
-            console.log(`Finished uploading ${filePath}`);
+            publishLog(`Finished uploading ${file}`);
+            console.log(`Finished uploading ${file}`);
         }
 
         publishLog('Upload Complete');
         console.log('Upload Complete');
+
+        await publisher.quit();
+        process.exit(0);
     })
 }
 
