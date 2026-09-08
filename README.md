@@ -4,6 +4,8 @@ A small Vercel-style deployment platform: paste a public git repo URL, it gets b
 
 ## Architecture
 
+![Architecture diagram](docs/architecture.png)
+
 ```
 services/frontend        (:3000)  --POST /project-->  services/api-server (:9000)
 services/api-server       --RunTask-->  ECS Fargate running services/build-server's image
