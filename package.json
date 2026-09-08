@@ -1,27 +1,15 @@
 {
   "name": "deployment-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "private": true,
+  "description": "A Vercel-style deployment platform: push a git URL, build it on Fargate, and serve it from S3.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gubbysbyte/Deployment-Service.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/gubbysbyte/Deployment-Service/issues"
   },
   "homepage": "https://github.com/gubbysbyte/Deployment-Service#readme",
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.1114.0",
-    "dotenv": "^17.4.2",
-    "ioredis": "^6.0.0",
-    "mime-types": "^3.0.2"
-  }
+  "license": "ISC"
 }

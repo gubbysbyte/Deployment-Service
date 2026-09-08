@@ -2,33 +2,17 @@
 
 ## Project
 
-This repository builds a Node.js 20 Docker service that clones a Git repository, runs its build, and uploads `output/dist` to Amazon S3.
+This is a pnpm workspace with four independently-run services under `services/`:
 
-- `Dockerfile`: Ubuntu-based Node.js 20 image and entrypoint.
-- `main.sh`: clones `$GIT_REPOSITORY__URL` into `/home/app/output`.
-- `script.js`: runs `npm install && npm run build`, then uploads files to S3.
-- `README.md`: ECR build, login, tag, and push commands.
+- `services/frontend` — Next.js dashboard
+- `services/api-server` — REST API + socket.io log relay
+- `services/build-server` — Docker image ECS runs per deployment
+- `services/s3-reverse-proxy` — serves deployed sites from S3
 
-## Development
-
-- Install dependencies: `npm install`
-- Syntax check: `node --check script.js`
-- Tests: `npm test` is currently a placeholder and intentionally exits with an error.
-- Build the image: `docker build -t build-server .`
-
-Required runtime environment variables:
-
-- `GIT_REPOSITORY__URL`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `PROJECT_ID`
-
-AWS region and output bucket are currently fixed in `script.js` as `eu-north-1` and `deployment-service-outputs`.
+See the root `README.md` for the architecture overview, and each service's own `AGENTS.md`/`README.md` for service-specific setup, commands, and change rules.
 
 ## Change Rules
 
-- Never hardcode AWS credentials or commit `.env` files; `.env` is ignored by Git.
-- Preserve the `build-server` ECR repository name and `eu-north-1` registry commands unless the deployment target changes.
-- Keep changes focused and use CommonJS style consistent with the existing Node.js code.
-- After JavaScript changes, run `node --check script.js`. After Dockerfile changes, run a Docker build when Docker is available.
+- Never hardcode AWS credentials or commit `.env` files; `.env` is ignored by Git at any depth.
+- Keep changes scoped to the relevant service unless a change genuinely spans services (e.g. an API contract change between `api-server` and `frontend`).
 - Do not rewrite Git history or bypass GitHub push protection to publish secrets. Revoke any credential that has been committed, even if the push was blocked.
