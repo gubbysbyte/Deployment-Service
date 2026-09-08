@@ -3,8 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { deployProject, SOCKET_URL } from "@/lib/api";
+import {
+  getHistory,
+  upsertRecord,
+  updateRecordStatus,
+  type DeploymentRecord,
+} from "@/lib/history";
 import Terminal from "@/components/Terminal";
 import StatusBadge, { type DeployStatus } from "@/components/StatusBadge";
+import DeploymentHistory from "@/components/DeploymentHistory";
+
+const EXAMPLE_REPO = "https://github.com/gubbysbyte/new-aws-test-app";
 
 export default function Home() {
   const [gitURL, setGitURL] = useState("");
@@ -16,6 +25,11 @@ export default function Home() {
   const [status, setStatus] = useState<DeployStatus>("queued");
   const [logs, setLogs] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+
+  const [history, setHistory] = useState<DeploymentRecord[]>(() =>
+    typeof window === "undefined" ? [] : getHistory()
+  );
+  const [redeployingSlug, setRedeployingSlug] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -52,10 +66,12 @@ export default function Home() {
     };
   }, [projectSlug]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!gitURL.trim()) return;
+  useEffect(() => {
+    if (!projectSlug) return;
+    updateRecordStatus(projectSlug, status);
+  }, [status, projectSlug]);
 
+  async function runDeploy(url: string, slug?: string) {
     setSubmitting(true);
     setFormError(null);
     setLogs([]);
@@ -65,15 +81,37 @@ export default function Home() {
     setCopied(false);
 
     try {
-      const res = await deployProject(gitURL.trim());
+      const res = await deployProject(url, slug);
       setProjectSlug(res.data.projectSlug);
       setSiteURL(res.data.url);
+      setHistory(
+        upsertRecord({
+          projectSlug: res.data.projectSlug,
+          gitURL: url,
+          url: res.data.url,
+          status: "queued",
+          updatedAt: Date.now(),
+        })
+      );
     } catch (err) {
       setStatus("error");
       setFormError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSubmitting(false);
+      setRedeployingSlug(null);
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!gitURL.trim()) return;
+    runDeploy(gitURL.trim());
+  }
+
+  function handleRedeploy(record: DeploymentRecord) {
+    setGitURL(record.gitURL);
+    setRedeployingSlug(record.projectSlug);
+    runDeploy(record.gitURL, record.projectSlug);
   }
 
   function handleReset() {
@@ -83,6 +121,7 @@ export default function Home() {
     setStatus("queued");
     setLogs([]);
     setFormError(null);
+    setHistory(getHistory());
   }
 
   function handleCopy() {
@@ -136,6 +175,23 @@ export default function Home() {
             {formError && (
               <p className="mt-3 text-sm text-red-400">{formError}</p>
             )}
+
+            <p className="mt-3 text-xs text-zinc-500">
+              Don&apos;t have a repo handy? Try{" "}
+              <button
+                type="button"
+                onClick={() => setGitURL(EXAMPLE_REPO)}
+                className="text-zinc-300 underline decoration-zinc-700 underline-offset-2 hover:text-zinc-100"
+              >
+                {EXAMPLE_REPO}
+              </button>
+            </p>
+
+            <DeploymentHistory
+              records={history}
+              onRedeploy={handleRedeploy}
+              redeployingSlug={redeployingSlug}
+            />
           </>
         ) : (
           <>
@@ -178,12 +234,23 @@ export default function Home() {
               <Terminal lines={logs} />
             </div>
 
-            <button
-              onClick={handleReset}
-              className="mt-6 self-start text-sm text-zinc-400 hover:text-zinc-200"
-            >
-              ← Deploy another project
-            </button>
+            <div className="mt-6 flex items-center gap-4">
+              <button
+                onClick={handleReset}
+                className="text-sm text-zinc-400 hover:text-zinc-200"
+              >
+                ← Deploy another project
+              </button>
+              <button
+                onClick={() =>
+                  gitURL && projectSlug && runDeploy(gitURL, projectSlug)
+                }
+                disabled={submitting || status === "building"}
+                className="rounded-md border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 disabled:opacity-50"
+              >
+                Redeploy
+              </button>
+            </div>
           </>
         )}
       </main>

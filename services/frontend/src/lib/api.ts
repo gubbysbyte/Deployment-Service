@@ -9,11 +9,14 @@ export type DeployResponse = {
   };
 };
 
-export async function deployProject(gitURL: string): Promise<DeployResponse> {
+export async function deployProject(
+  gitURL: string,
+  slug?: string
+): Promise<DeployResponse> {
   const res = await fetch(`${API_URL}/project`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ gitURL }),
+    body: JSON.stringify(slug ? { gitURL, slug } : { gitURL }),
   });
 
   if (!res.ok) {
