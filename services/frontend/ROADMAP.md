@@ -1,14 +1,20 @@
 # Frontend Roadmap
 
-Future changes for the deploy dashboard, in no particular priority order.
+Future changes for the deploy dashboard, in no particular priority order — except the item below, which is urgent.
 
-## 1. Deployment history
+## ⚠️ Rate limiting on `/project` (urgent — cost risk)
 
-A list of past deploys (slug, git URL, timestamp, status) so refreshing the page doesn't lose everything. Right now nothing is persisted; it'd need a backing store (even just `localStorage` for a quick version, or a small DB/table on the backend for something durable across devices).
+`api-server`'s `POST /project` has no rate limiting or auth, and every call spins up a real ECS Fargate task. Now that the landing page has a one-click example repo link, it's trivially easy — accidentally or maliciously — for someone to spam deploys and burn through the AWS free tier (or rack up real charges once it's exhausted).
 
-## 2. Re-deploy button
+Needs to happen in `services/api-server` before this is exposed anywhere public: some combination of per-IP rate limiting (e.g. `express-rate-limit`), a request cap per time window, and/or requiring auth to deploy at all.
 
-Redeploy the same repo with a new build, using the `slug` param your API already accepts.
+## 1. ~~Deployment history~~ — done
+
+Implemented via `localStorage` (`src/lib/history.ts`) — past deploys (slug, git URL, timestamp, status) persist across refreshes and are shown on the landing page.
+
+## 2. ~~Re-deploy button~~ — done
+
+Implemented — both in the history list and on the active project view, reusing the `slug` param so the same URL gets redeployed rather than a new one.
 
 ## 3. Environment variables input
 
