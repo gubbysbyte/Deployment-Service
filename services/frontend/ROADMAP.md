@@ -4,9 +4,9 @@ Future changes for the deploy dashboard, in no particular priority order — exc
 
 ## ⚠️ Rate limiting on `/project` (urgent — cost risk)
 
-`api-server`'s `POST /project` has no rate limiting or auth, and every call spins up a real ECS Fargate task. Now that the landing page has a one-click example repo link, it's trivially easy — accidentally or maliciously — for someone to spam deploys and burn through the AWS free tier (or rack up real charges once it's exhausted).
+`api-server`'s `POST /project` has no rate limiting, and every call spins up a real ECS Fargate task. Now that the landing page has a one-click example repo link, it's trivially easy — accidentally or maliciously — for someone to spam deploys and burn through the AWS free tier (or rack up real charges once it's exhausted).
 
-Needs to happen in `services/api-server` before this is exposed anywhere public: some combination of per-IP rate limiting (e.g. `express-rate-limit`), a request cap per time window, and/or requiring auth to deploy at all.
+This project intentionally has **no login wall** — it's meant to be tried the way Vercel is, by recruiters/visitors with zero signup friction — so rate limiting is the only abuse defense, not a stopgap before auth. Plan: `services/api-server/RATE_LIMITING_PLAN.md` (per-IP limits + a global concurrent-build cap tied to the actual Fargate vCPU quota).
 
 ## 1. ~~Deployment history~~ — done
 
